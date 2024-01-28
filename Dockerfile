@@ -8,9 +8,15 @@ WORKDIR /app
 COPY dist/Django-ecommerce-*.tar.gz .
 
 # Extract the source distribution archive and install the package
-RUN tar -xzf Django-ecommerce-*.tar.gz --strip-components=1 && \
-    pip install . && \
-    rm Django-ecommerce-*.tar.gz
+RUN set -eux; \
+    apk add --no-cache --virtual .build-deps \
+        gcc \
+        libc-dev \
+        linux-headers \
+        && tar -xzf Django-ecommerce-*.tar.gz --strip-components=1 \
+        && pip install . \
+        && apk del .build-deps \
+        && rm Django-ecommerce-*.tar.gz
 
 # Create a non-root user for running the application
 RUN adduser -D myuser
