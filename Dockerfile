@@ -4,12 +4,17 @@ FROM python:3.10-alpine
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the source distribution archive to the container
-COPY dist/Django-ecommerce-*.tar.gz /app/
+# Copy only the necessary files for installation
+COPY dist/Django-ecommerce-*.tar.gz .
 
 # Extract the source distribution archive and install the package
-RUN tar -xzf tar -xzf Django-ecommerce-*.tar.gz --strip-components=1 && \
-    pip install .
+RUN tar -xzf Django-ecommerce-*.tar.gz --strip-components=1 && \
+    pip install . && \
+    rm Django-ecommerce-*.tar.gz
+
+# Create a non-root user for running the application
+RUN adduser -D myuser
+USER myuser
 
 # Run the command to start the Django development server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
