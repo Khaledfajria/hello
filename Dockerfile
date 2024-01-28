@@ -1,26 +1,22 @@
-# Use an official Python runtime as the base image
-FROM python:3.10-alpine
-
-# Set the working directory in the container
+# Build stage
+FROM python:3.10-alpine as build
 WORKDIR /app
 
-# Copy only the necessary files for installation
-COPY dist/Django-ecommerce-*.tar.gz .
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
 
-# Extract the source distribution archive and install the package
-RUN set -eux; \
-    apk add --no-cache --virtual .build-deps \
-        gcc \
-        libc-dev \
-        linux-headers \
-        && tar -xzf Django-ecommerce-*.tar.gz --strip-components=1 \
-        && pip install . \
-        && apk del .build-deps \
-        && rm Django-ecommerce-*.tar.gz
+COPY . .
+RUN python manage.py collectstatic --no-input
 
-# Create a non-root user for running the application
-RUN adduser -D myuser
-USER myuser
+# Final stage
+FROM python:3.10-alpine
+WORKDIR /app
 
-# Run the command to start the Django development server
+# Switch to non-root user
+RUN addgroup -g 1000 appuser && adduser -u 1000 -G appuser appuser
+USER appuser
+
+# Copy over from build stage
+COPY --from=build /app .
+
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
