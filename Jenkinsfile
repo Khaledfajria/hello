@@ -5,6 +5,7 @@ pipeline {
             steps {
                 sh 'pwd'
                 sh 'ls -l'
+                sh 'docker run hello-world'
                 sh 'docker run --rm  -v $(pwd)/Dockerfile:/project openpolicyagent/conftest test --policy Docker-security.rego Dockerfile'
             }
         }
